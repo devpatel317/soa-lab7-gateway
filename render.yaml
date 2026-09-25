@@ -1,0 +1,83 @@
+services:
+  # -------------------------------------------------------------
+  # API Gateway (Public Entry Point)
+  # -------------------------------------------------------------
+  - type: web
+    name: soa-api-gateway
+    env: node
+    rootDir: api-gateway
+    buildCommand: npm install
+    startCommand: npm start
+    plan: free
+    envVars:
+      - key: USER_SERVICE_URL
+        fromService:
+          type: web
+          name: soa-user-service
+          property: host
+      - key: PRODUCT_SERVICE_URL
+        fromService:
+          type: web
+          name: soa-product-service
+          property: host
+      - key: ORDER_SERVICE_URL
+        fromService:
+          type: web
+          name: soa-order-service
+          property: host
+      - key: PROXY_TIMEOUT_MS
+        value: 10000
+
+  # -------------------------------------------------------------
+  # User Service
+  # -------------------------------------------------------------
+  - type: web
+    name: soa-user-service
+    env: node
+    rootDir: user-service
+    buildCommand: npm install
+    startCommand: npm start
+    plan: free
+    envVars:
+      - key: MONGO_URI
+        sync: false
+
+  # -------------------------------------------------------------
+  # Product Service
+  # -------------------------------------------------------------
+  - type: web
+    name: soa-product-service
+    env: node
+    rootDir: product-service
+    buildCommand: npm install
+    startCommand: npm start
+    plan: free
+    envVars:
+      - key: MONGO_URI
+        sync: false
+
+  # -------------------------------------------------------------
+  # Order Service
+  # -------------------------------------------------------------
+  - type: web
+    name: soa-order-service
+    env: node
+    rootDir: order-service
+    buildCommand: npm install
+    startCommand: npm start
+    plan: free
+    envVars:
+      - key: MONGO_URI
+        sync: false
+      - key: USER_SERVICE_URL
+        fromService:
+          type: web
+          name: soa-user-service
+          property: host
+      - key: PRODUCT_SERVICE_URL
+        fromService:
+          type: web
+          name: soa-product-service
+          property: host
+      - key: HTTP_TIMEOUT_MS
+        value: 5000

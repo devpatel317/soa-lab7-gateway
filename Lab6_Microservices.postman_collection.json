@@ -1,0 +1,411 @@
+{
+	"info": {
+		"_postman_id": "8f3b6a22-9213-4c91-a1b7-7e6df91823ab",
+		"name": "SOA Lab 6 - Microservices Architecture",
+		"description": "Postman Collection for Web Services & SOA Lab 6: User Service (:3001), Product Service (:3002), and Order Service (:3003) with Inter-Service REST Communication and Error Handling.",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"variable": [
+		{
+			"key": "user_url",
+			"value": "http://localhost:3001",
+			"type": "string"
+		},
+		{
+			"key": "product_url",
+			"value": "http://localhost:3002",
+			"type": "string"
+		},
+		{
+			"key": "order_url",
+			"value": "http://localhost:3003",
+			"type": "string"
+		},
+		{
+			"key": "userId",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "productId",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "orderId",
+			"value": "",
+			"type": "string"
+		}
+	],
+	"item": [
+		{
+			"name": "1. User Service (:3001)",
+			"item": [
+				{
+					"name": "Get All Users",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{user_url}}/users",
+							"host": ["{{user_url}}"],
+							"path": ["users"]
+						},
+						"description": "Returns a list of all registered users (200 OK)."
+					}
+				},
+				{
+					"name": "Create User",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 201) {",
+									"    var jsonData = pm.response.json();",
+									"    if (jsonData.data && jsonData.data.id) {",
+									"        pm.collectionVariables.set('userId', jsonData.data.id);",
+									"    }",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"Alice Johnson\",\n    \"email\": \"alice@example.com\",\n    \"phone\": \"+1-555-0199\",\n    \"address\": \"123 Innovation Way, Tech City\"\n}"
+						},
+						"url": {
+							"raw": "{{user_url}}/users",
+							"host": ["{{user_url}}"],
+							"path": ["users"]
+						},
+						"description": "Creates a new user in User Service MongoDB (201 Created)."
+					}
+				},
+				{
+					"name": "Get User By ID",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{user_url}}/users/{{userId}}",
+							"host": ["{{user_url}}"],
+							"path": ["users", "{{userId}}"]
+						},
+						"description": "Retrieves user details by their unique MongoDB ID."
+					}
+				},
+				{
+					"name": "Update User",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"phone\": \"+1-555-9999\",\n    \"address\": \"456 Commerce Blvd, Suite 200\"\n}"
+						},
+						"url": {
+							"raw": "{{user_url}}/users/{{userId}}",
+							"host": ["{{user_url}}"],
+							"path": ["users", "{{userId}}"]
+						},
+						"description": "Updates user details (200 OK)."
+					}
+				},
+				{
+					"name": "Get User - Invalid ID (404 Test)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{user_url}}/users/65e900000000000000000000",
+							"host": ["{{user_url}}"],
+							"path": ["users", "65e900000000000000000000"]
+						},
+						"description": "Tests 404 Not Found error handling for non-existent user."
+					}
+				},
+				{
+					"name": "Delete User",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{user_url}}/users/{{userId}}",
+							"host": ["{{user_url}}"],
+							"path": ["users", "{{userId}}"]
+						},
+						"description": "Deletes user by ID (200 OK)."
+					}
+				}
+			]
+		},
+		{
+			"name": "2. Product Service (:3002)",
+			"item": [
+				{
+					"name": "Get All Products",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{product_url}}/products",
+							"host": ["{{product_url}}"],
+							"path": ["products"]
+						},
+						"description": "Returns a list of all products in catalog (200 OK)."
+					}
+				},
+				{
+					"name": "Create Product",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 201) {",
+									"    var jsonData = pm.response.json();",
+									"    if (jsonData.data && jsonData.data.id) {",
+									"        pm.collectionVariables.set('productId', jsonData.data.id);",
+									"    }",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"Wireless Noise-Canceling Headphones\",\n    \"description\": \"Premium over-ear Bluetooth headphones with active noise cancellation\",\n    \"price\": 149.99,\n    \"stock\": 50,\n    \"category\": \"Electronics\"\n}"
+						},
+						"url": {
+							"raw": "{{product_url}}/products",
+							"host": ["{{product_url}}"],
+							"path": ["products"]
+						},
+						"description": "Creates a new product in Product Service MongoDB (201 Created)."
+					}
+				},
+				{
+					"name": "Get Product By ID",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{product_url}}/products/{{productId}}",
+							"host": ["{{product_url}}"],
+							"path": ["products", "{{productId}}"]
+						},
+						"description": "Retrieves product details by ID."
+					}
+				},
+				{
+					"name": "Update Product",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"price\": 129.99,\n    \"stock\": 45\n}"
+						},
+						"url": {
+							"raw": "{{product_url}}/products/{{productId}}",
+							"host": ["{{product_url}}"],
+							"path": ["products", "{{productId}}"]
+						},
+						"description": "Updates product pricing and stock (200 OK)."
+					}
+				},
+				{
+					"name": "Get Product - Invalid ID (404 Test)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{product_url}}/products/65e900000000000000000000",
+							"host": ["{{product_url}}"],
+							"path": ["products", "65e900000000000000000000"]
+						},
+						"description": "Tests 404 Not Found handling for invalid product."
+					}
+				},
+				{
+					"name": "Delete Product",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{product_url}}/products/{{productId}}",
+							"host": ["{{product_url}}"],
+							"path": ["products", "{{productId}}"]
+						},
+						"description": "Deletes product by ID (200 OK)."
+					}
+				}
+			]
+		},
+		{
+			"name": "3. Order Service (:3003)",
+			"item": [
+				{
+					"name": "Create Order (Valid - Inter-Service Validation)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 201) {",
+									"    var jsonData = pm.response.json();",
+									"    if (jsonData.data && jsonData.data.id) {",
+									"        pm.collectionVariables.set('orderId', jsonData.data.id);",
+									"    }",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"userId\": \"{{userId}}\",\n    \"productId\": \"{{productId}}\",\n    \"quantity\": 2\n}"
+						},
+						"url": {
+							"raw": "{{order_url}}/orders",
+							"host": ["{{order_url}}"],
+							"path": ["orders"]
+						},
+						"description": "Calls User Service (:3001) and Product Service (:3002) to validate IDs, checks stock, calculates totalPrice, and records the order (201 Created)."
+					}
+				},
+				{
+					"name": "Get All Orders",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{order_url}}/orders",
+							"host": ["{{order_url}}"],
+							"path": ["orders"]
+						},
+						"description": "Retrieves all placed orders (200 OK)."
+					}
+				},
+				{
+					"name": "Get Order By ID",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{order_url}}/orders/{{orderId}}",
+							"host": ["{{order_url}}"],
+							"path": ["orders", "{{orderId}}"]
+						},
+						"description": "Retrieves order details by unique order ID."
+					}
+				},
+				{
+					"name": "Create Order - Invalid User ID (404 Test)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"userId\": \"65e900000000000000000000\",\n    \"productId\": \"{{productId}}\",\n    \"quantity\": 1\n}"
+						},
+						"url": {
+							"raw": "{{order_url}}/orders",
+							"host": ["{{order_url}}"],
+							"path": ["orders"]
+						},
+						"description": "Tests Order Service behavior when User Service responds with 404 (Returns 404 Not Found)."
+					}
+				},
+				{
+					"name": "Create Order - Invalid Product ID (404 Test)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"userId\": \"{{userId}}\",\n    \"productId\": \"65e900000000000000000000\",\n    \"quantity\": 1\n}"
+						},
+						"url": {
+							"raw": "{{order_url}}/orders",
+							"host": ["{{order_url}}"],
+							"path": ["orders"]
+						},
+						"description": "Tests Order Service behavior when Product Service responds with 404 (Returns 404 Not Found)."
+					}
+				},
+				{
+					"name": "Create Order - Service Unavailable (503 Test)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"userId\": \"{{userId}}\",\n    \"productId\": \"{{productId}}\",\n    \"quantity\": 1\n}"
+						},
+						"url": {
+							"raw": "{{order_url}}/orders",
+							"host": ["{{order_url}}"],
+							"path": ["orders"]
+						},
+						"description": "Demonstrates controlled 503 error handling when User Service or Product Service container is stopped."
+					}
+				}
+			]
+		}
+	]
+}
