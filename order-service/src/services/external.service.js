@@ -1,8 +1,16 @@
 const axios = require('axios');
 
-const USER_SERVICE_URL = process.env.USER_SERVICE_URL || 'http://user-service:3001';
-const PRODUCT_SERVICE_URL = process.env.PRODUCT_SERVICE_URL || 'http://product-service:3002';
-const TIMEOUT_MS = parseInt(process.env.HTTP_TIMEOUT_MS, 10) || 3000;
+function normalizeUrl(urlStr, defaultUrl) {
+  let val = (urlStr || defaultUrl).trim();
+  if (!val.startsWith('http://') && !val.startsWith('https://')) {
+    val = val.includes('.onrender.com') ? `https://${val}` : `http://${val}`;
+  }
+  return val.replace(/\/+$/, '');
+}
+
+const USER_SERVICE_URL = normalizeUrl(process.env.USER_SERVICE_URL, 'http://user-service:3001');
+const PRODUCT_SERVICE_URL = normalizeUrl(process.env.PRODUCT_SERVICE_URL, 'http://product-service:3002');
+const TIMEOUT_MS = parseInt(process.env.HTTP_TIMEOUT_MS, 10) || 5000;
 
 class ServiceError extends Error {
   constructor(message, statusCode, serviceName, details = null) {
