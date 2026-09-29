@@ -8,7 +8,16 @@ require('dotenv').config();
 function normalizeUrl(urlStr, defaultUrl) {
   let val = (urlStr || defaultUrl).trim();
   if (!val.startsWith('http://') && !val.startsWith('https://')) {
-    val = val.includes('.onrender.com') ? `https://${val}` : `http://${val}`;
+    if (val.includes('.onrender.com')) {
+      val = `https://${val}`;
+    } else if (val.includes('-service') && !val.startsWith('user-service') && !val.startsWith('product-service') && !val.startsWith('order-service')) {
+      // Render auto-generated hostname like soa-user-service-bl6i
+      val = `https://${val}.onrender.com`;
+    } else if (!val.includes('.') && !val.includes('localhost') && val.startsWith('soa-')) {
+      val = `https://${val}.onrender.com`;
+    } else {
+      val = `http://${val}`;
+    }
   }
   return val.replace(/\/+$/, '');
 }

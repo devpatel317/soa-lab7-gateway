@@ -293,10 +293,10 @@ The microservices are built to seamlessly connect to your **MongoDB Atlas** clou
      - `ORDER_SERVICE_URL`: `<deployed-order-service-url>`
      - `PROXY_TIMEOUT_MS`: `10000`
 3. **Verify Public Gateway URL**:
-   - Render / Railway will assign a public HTTPS address (e.g., `https://soa-api-gateway.onrender.com`).
+   - Render assigns a public HTTPS address for the API Gateway: `https://soa-api-gateway-bl6i.onrender.com`.
    - Run the automated test suite against your live cloud deployment:
      ```bash
-     node test_gateway_runner.js https://soa-api-gateway.onrender.com
+     node test_gateway_runner.js https://soa-api-gateway-bl6i.onrender.com
      ```
 
 ---
