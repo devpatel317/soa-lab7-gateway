@@ -15,7 +15,7 @@ services:
       - USER_SERVICE_URL=http://user-service:3001
       - PRODUCT_SERVICE_URL=http://product-service:3002
       - ORDER_SERVICE_URL=http://order-service:3003
-      - PROXY_TIMEOUT_MS=5000
+      - PROXY_TIMEOUT_MS=10000
     depends_on:
       - user-service
       - product-service
@@ -24,19 +24,7 @@ services:
       - lab7-network
 
   # -------------------------------------------------------------
-  # User Database (Dedicated MongoDB instance for User Service)
-  # -------------------------------------------------------------
-  user-db:
-    image: mongo:7.0
-    container_name: user-db
-    restart: unless-stopped
-    volumes:
-      - user_db_data:/data/db
-    networks:
-      - lab7-network
-
-  # -------------------------------------------------------------
-  # User Service (Internal Only - Reachable inside Docker Network)
+  # User Service (Internal Only - Connected to MongoDB Atlas)
   # -------------------------------------------------------------
   user-service:
     build:
@@ -48,26 +36,12 @@ services:
       - "3001"
     environment:
       - PORT=3001
-      - MONGO_URI=${USER_MONGO_URI:-${MONGO_URI:-mongodb://user-db:27017/userdb}}
-    depends_on:
-      - user-db
+      - MONGO_URI=${USER_MONGO_URI:-${MONGO_URI}}
     networks:
       - lab7-network
 
   # -------------------------------------------------------------
-  # Product Database (Dedicated MongoDB instance for Product Service)
-  # -------------------------------------------------------------
-  product-db:
-    image: mongo:7.0
-    container_name: product-db
-    restart: unless-stopped
-    volumes:
-      - product_db_data:/data/db
-    networks:
-      - lab7-network
-
-  # -------------------------------------------------------------
-  # Product Service (Internal Only - Reachable inside Docker Network)
+  # Product Service (Internal Only - Connected to MongoDB Atlas)
   # -------------------------------------------------------------
   product-service:
     build:
@@ -79,26 +53,12 @@ services:
       - "3002"
     environment:
       - PORT=3002
-      - MONGO_URI=${PRODUCT_MONGO_URI:-${MONGO_URI:-mongodb://product-db:27017/productdb}}
-    depends_on:
-      - product-db
+      - MONGO_URI=${PRODUCT_MONGO_URI:-${MONGO_URI}}
     networks:
       - lab7-network
 
   # -------------------------------------------------------------
-  # Order Database (Dedicated MongoDB instance for Order Service)
-  # -------------------------------------------------------------
-  order-db:
-    image: mongo:7.0
-    container_name: order-db
-    restart: unless-stopped
-    volumes:
-      - order_db_data:/data/db
-    networks:
-      - lab7-network
-
-  # -------------------------------------------------------------
-  # Order Service (Internal Only - Reachable inside Docker Network)
+  # Order Service (Internal Only - Connected to MongoDB Atlas)
   # -------------------------------------------------------------
   order-service:
     build:
@@ -110,29 +70,20 @@ services:
       - "3003"
     environment:
       - PORT=3003
-      - MONGO_URI=${ORDER_MONGO_URI:-${MONGO_URI:-mongodb://order-db:27017/orderdb}}
+      - MONGO_URI=${ORDER_MONGO_URI:-${MONGO_URI}}
       - USER_SERVICE_URL=http://user-service:3001
       - PRODUCT_SERVICE_URL=http://product-service:3002
-      - HTTP_TIMEOUT_MS=3000
+      - HTTP_TIMEOUT_MS=5000
     depends_on:
-      - order-db
       - user-service
       - product-service
     networks:
       - lab7-network
 
 # -------------------------------------------------------------
-# Networks & Persistent Volumes
+# Networks (No local DB volumes required when using Atlas)
 # -------------------------------------------------------------
 networks:
   lab7-network:
     driver: bridge
     name: lab7-network
-
-volumes:
-  user_db_data:
-    driver: local
-  product_db_data:
-    driver: local
-  order_db_data:
-    driver: local

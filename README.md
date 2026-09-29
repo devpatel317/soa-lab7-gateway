@@ -249,38 +249,68 @@ If any microservice is stopped or becomes unreachable:
 
 ---
 
-## 8. Cloud Deployment Guide (Part C)
+## 8. Cloud Deployment Guide & MongoDB Atlas Integration (Part C)
 
-### 8.1. Option 1: Deployment on Render / Railway / Fly.io
+### 8.1. Configuring MongoDB Atlas Connection (No Local Docker DB Needed)
 
-1. **Deploy Microservices as Private Services / Web Services**:
-   - Push repository to GitHub.
-   - On the cloud platform (e.g. Render or Railway):
-     - Create **User Service** (Docker / Node), set `MONGO_URI` to your MongoDB Atlas connection string.
-     - Create **Product Service** (Docker / Node), set `MONGO_URI` to MongoDB Atlas connection string.
-     - Create **Order Service** (Docker / Node), set `MONGO_URI` to MongoDB Atlas connection string, and set `USER_SERVICE_URL` and `PRODUCT_SERVICE_URL` to the internal/public URLs of the deployed services.
+The microservices are built to seamlessly connect to your **MongoDB Atlas** cloud cluster instead of local Docker Mongo containers.
+
+1. **Copy the environment template**:
+   ```bash
+   cp .env.example .env
+   ```
+2. **Set your MongoDB Atlas Connection Strings in `.env`**:
+   ```ini
+   # If using dedicated databases on the same Atlas cluster:
+   USER_MONGO_URI=mongodb+srv://<username>:<password>@cluster0.mongodb.net/userdb?retryWrites=true&w=majority
+   PRODUCT_MONGO_URI=mongodb+srv://<username>:<password>@cluster0.mongodb.net/productdb?retryWrites=true&w=majority
+   ORDER_MONGO_URI=mongodb+srv://<username>:<password>@cluster0.mongodb.net/orderdb?retryWrites=true&w=majority
+   ```
+   *(Or specify a single `MONGO_URI` if sharing a common database).*
+
+3. **Running Application Containers with MongoDB Atlas (No Mongo Docker containers)**:
+   Use `docker-compose.atlas.yml` which spins up **only** the 4 application containers (`api-gateway`, `user-service`, `product-service`, `order-service`):
+   ```bash
+   docker compose -f docker-compose.atlas.yml up --build
+   ```
+
+---
+
+### 8.2. Option 1: Deployment on Render / Railway / Fly.io
+
+1. **Deploy Microservices as Web / Private Services**:
+   - Push your code to your GitHub repository.
+   - On **Render** (using `render.yaml` or creating Web Services manually):
+     - **User Service**: Set `MONGO_URI` (or `USER_MONGO_URI`) to your MongoDB Atlas connection string.
+     - **Product Service**: Set `MONGO_URI` (or `PRODUCT_MONGO_URI`) to your MongoDB Atlas connection string.
+     - **Order Service**: Set `MONGO_URI` (or `ORDER_MONGO_URI`) to MongoDB Atlas connection string, and set `USER_SERVICE_URL` and `PRODUCT_SERVICE_URL` to the internal or public URL of your deployed User and Product services.
 2. **Deploy API Gateway as Public Web Service**:
-   - Create a Web Service pointing to `./api-gateway` directory (or Dockerfile).
-   - Configure Cloud Environment Variables:
-     - `PORT`: `8080` (or platform default `$PORT`)
+   - Point to `api-gateway/` directory.
+   - Configure Environment Variables:
+     - `PORT`: `8080` (or leave default `$PORT`)
      - `USER_SERVICE_URL`: `<deployed-user-service-url>`
      - `PRODUCT_SERVICE_URL`: `<deployed-product-service-url>`
      - `ORDER_SERVICE_URL`: `<deployed-order-service-url>`
-     - `PROXY_TIMEOUT_MS`: `5000`
+     - `PROXY_TIMEOUT_MS`: `10000`
 3. **Verify Public Gateway URL**:
-   - Once deployed, the cloud platform assigns a public URL (e.g., `https://soa-api-gateway.onrender.com` or `https://soa-gateway.up.railway.app`).
-   - Run the automated test runner against the public cloud endpoint:
+   - Render / Railway will assign a public HTTPS address (e.g., `https://soa-api-gateway.onrender.com`).
+   - Run the automated test suite against your live cloud deployment:
      ```bash
-     node test_gateway_runner.js https://your-cloud-gateway-url.onrender.com
+     node test_gateway_runner.js https://soa-api-gateway.onrender.com
      ```
 
-### 8.2. Option 2: Deployment via Docker Compose on Cloud VM (AWS EC2 / GCP Compute Engine / DigitalOcean)
+---
 
-1. Provision an Ubuntu VM instance and install Docker & Docker Compose.
-2. Clone repository to the server.
-3. Update `.env` or `docker-compose.yml` with MongoDB Atlas connection strings for each service.
-4. Run `docker compose up -d --build`.
-5. Open inbound firewall/security group port `8080` for public internet access.
+### 8.3. Option 2: Deployment via Docker Compose on Cloud VM (AWS EC2 / GCP / DigitalOcean)
+
+1. Provision a Linux VM and install Docker & Docker Compose.
+2. Clone this repository onto the VM.
+3. Create `.env` and set your MongoDB Atlas URIs.
+4. Run:
+   ```bash
+   docker compose -f docker-compose.atlas.yml up -d --build
+   ```
+5. Allow inbound traffic on port `8080` in your Cloud Security Group / Firewall.
 6. Test using Postman / runner against `http://<YOUR_VM_PUBLIC_IP>:8080`.
 
 ---
